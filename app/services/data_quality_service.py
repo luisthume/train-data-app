@@ -12,7 +12,7 @@ class DataQualityService:
         """Generate a data quality report from validated data."""
         data = self.kafka_repo.consume()
         if not data:
-            logger.warning("No data found. Returning empty report.")
+            logger.info("No data found. Returning empty report.")
             return {
                 "total_records": 0,
                 "missing_values": {},

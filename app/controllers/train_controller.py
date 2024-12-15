@@ -65,5 +65,5 @@ async def clean_data(format: str):
             headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
         )
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Data cleaning and export failed: {str(e)}")
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=f"Data cleaning and export failed: {str(err)}")

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -7,13 +7,13 @@ class TimeTableRow(BaseModel):
     stationShortCode: str
     stationUICCode: int
     countryCode: str
-    type: str  # Example: "DEPARTURE" or "ARRIVAL"
+    type: str  # e.g.: "DEPARTURE" or "ARRIVAL"
     trainStopping: bool
-    commercialStop: Optional[bool] = None  # appears only when true
+    commercialStop: Optional[bool] = None
     commercialTrack: Optional[str] = None
     cancelled: bool
     scheduledTime: datetime
-    causes: List[dict]  # Assuming causes is a list of dictionaries
+    causes: List[dict]
 
 class TrainData(BaseModel):
     trainNumber: int
@@ -29,3 +29,10 @@ class TrainData(BaseModel):
     timetableType: str
     timetableAcceptanceDate: datetime
     timeTableRows: List[TimeTableRow] 
+
+    # # Logic level validators
+    # @model_validator(mode='after')
+    # def validate_dates(cls, values):
+    #     if values.departureDate > values.timetableAcceptanceDate.date():
+    #         raise ValueError("Departure date cannot be after timetable acceptance date.")
+    #     return values

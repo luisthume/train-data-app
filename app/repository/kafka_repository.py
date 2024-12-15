@@ -25,7 +25,7 @@ class KafkaRepository:
         """Initialize and return a Kafka admin client."""
         return AdminClient({'bootstrap.servers': self.broker})
 
-    def produce(self, value: dict):
+    def produce(self, value: dict, key: str = None):
         """
         Produce a message to the Kafka topic.
         :param key: Key for partitioning the message (optional).
@@ -35,12 +35,13 @@ class KafkaRepository:
             serialized_value = json.dumps(value)
             self.producer.produce(
                 self.topic,
+                key=key.encode('utf-8') if key else None,
                 value=serialized_value.encode('utf-8')
             )
             self.producer.flush()
             logger.info(f"Message produced to topic {self.topic}: {serialized_value}")
-        except Exception as e:
-            logger.error(f"Failed to produce message to Kafka: {e}")
+        except Exception as err:
+            logger.error(f"Failed to produce message to Kafka: {err}")
 
     def _create_consumer(self, group_id: str):
         """
@@ -133,8 +134,8 @@ class KafkaRepository:
                         parsed_messages.append(json_message)
                     except json.JSONDecodeError:
                         logger.error(f"Failed to parse message as JSON: {raw_message}")
-        except Exception as e:
-            logger.error(f"Failed to consume messages: {e}")
+        except Exception as err:
+            logger.error(f"Failed to consume messages: {err}")
         return parsed_messages
 
     def close_consumer(self):
