@@ -7,14 +7,16 @@ from services.train_service import TrainService
 from services.data_quality_service import DataQualityService
 from config import DIGITRAFFIC_API_URL, KAFKA_BROKER, TOPIC_NAME
 
-router = APIRouter()
+router = APIRouter(prefix="/train", tags=["Train Data"])
 logger = logging.getLogger(__name__)
 
-# Initialize repository and services
-train_service_kafka = KafkaRepository(broker=KAFKA_BROKER, topic=TOPIC_NAME, group_id="train_service_group")
-train_service = TrainService(train_service_kafka, DIGITRAFFIC_API_URL)
-data_quality_kafka = KafkaRepository(broker=KAFKA_BROKER, topic=TOPIC_NAME, group_id="data_quality_service_group")
-data_quality_service = DataQualityService(data_quality_kafka)
+train_service = TrainService(
+    KafkaRepository(broker=KAFKA_BROKER, topic=TOPIC_NAME, group_id="train_service_group"),
+    DIGITRAFFIC_API_URL
+)
+data_quality_service = DataQualityService(
+    KafkaRepository(broker=KAFKA_BROKER, topic=TOPIC_NAME, group_id="data_quality_service_group")
+)
 
 @router.get("/ingest", summary="Fetch and produce train data.")
 async def ingest_train_data():
