@@ -111,8 +111,9 @@ curl -X GET http://localhost/v1/health
 
 ```csv
 
-trainNumber,departureDate,operatorUICCode,operatorShortCode,trainType,trainCategory,commuterLineID,runningCurrently,cancelled,version,timetableType,timetableAcceptanceDate,timeTableRows
-7,2024-12-15,10,vr,IC,Long-distance,,False,False,290008767183,REGULAR,2024-10-31 06:14:29+00:00,"[{'stationShortCode': 'HKI', 'stationUICCode': 1, 'countryCode': 'FI', 'type': 'DEPARTURE', 'trainStopping': True, 'commercialStop': True, 'commercialTrack': '9', 'cancelled': False, 'scheduledTime': datetime.datetime(2024, 12, 15, 13, 19, tzinfo=TzInfo(UTC)), 'causes': []}]
+| trainNumber | departureDate | operatorUICCode | operatorShortCode | trainType | trainCategory | commuterLineID | runningCurrently | cancelled | version     | timetableType | timetableAcceptanceDate   | timeTableRows                                                                                  |
+|-------------|----------------|------------------|--------------------|-----------|----------------|----------------|------------------|------------|--------------|----------------|----------------------------|------------------------------------------------------------------------------------------------|
+| 7           | 2024-12-15    | 10               | vr                 | IC        | Long-distance |                | False            | False      | 290008767183 | REGULAR        | 2024-10-31 06:14:29+00:00 | [{'stationShortCode': 'HKI', 'stationUICCode': 1, 'countryCode': 'FI', 'type': 'DEPARTURE', 'trainStopping': True, 'commercialStop': True, 'commercialTrack': '9', 'cancelled': False, 'scheduledTime': datetime.datetime(2024, 12, 15, 13, 19, tzinfo=TzInfo(UTC)), 'causes': []}] |
 ```
 
 ## OpenAPI UI
