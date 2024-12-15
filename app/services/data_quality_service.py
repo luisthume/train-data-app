@@ -42,14 +42,12 @@ class DataQualityService:
         """Identify anomalies in the data."""
         anomalies = {}
 
-        # Check for invalid or non-standard date formats
         try:
             invalid_dates = df.loc[pd.to_datetime(df['departureDate'], errors='coerce').isna()]
             anomalies['departureDate'] = len(invalid_dates)
         except KeyError:
             anomalies['departureDate'] = "Field missing"
 
-        # Check for negative or unexpected train numbers
         if "trainNumber" in df:
             anomalies['trainNumber'] = int((df['trainNumber'] < 0).sum())
 

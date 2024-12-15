@@ -19,7 +19,7 @@ data_quality_service = DataQualityService(
 )
 
 @router.get("/ingest", summary="Fetch and produce train data.")
-async def ingest_train_data():
+async def ingest_train_data() -> dict:
     """
     Endpoint to fetch train data and produce it to the Kafka topic.
     :return: Status message.
@@ -33,7 +33,7 @@ async def ingest_train_data():
 
 
 @router.get("/quality-report", summary="Generate data quality report.")
-async def data_quality_report():
+async def data_quality_report() -> dict:
     """
     Endpoint to consume raw train data and generate a data quality report.
     :return: Data quality report.
@@ -43,9 +43,12 @@ async def data_quality_report():
 
 
 @router.post("/clean-data/{format}", summary="Clean and export data.", status_code=200)
-async def clean_data(format: str):
+async def clean_data(format: str) -> FileResponse:
     """
     Clean train data and export it to the specified format (CSV or JSON).
+
+    :param format: The export format ('csv' or 'json').
+    :return: FileResponse with the exported file.
     """
     valid_formats = ["csv", "json"]
 
@@ -56,14 +59,27 @@ async def clean_data(format: str):
         logger.info(f"Initiating data cleaning and export to {format.upper()} format.")
         file_path = train_service.clean_data_and_export(export_format=format.lower())
 
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail=f"Exported {format.upper()} file not found.")
-        
+        if not file_path or not os.path.exists(file_path):
+            detail_message = (
+                f"No data was processed or the exported {format.upper()} file could not be found. "
+                f"Ensure there is valid train data to process."
+            )
+            logger.warning(detail_message)
+            raise HTTPException(status_code=404, detail=detail_message)
+
         return FileResponse(
             file_path,
             media_type="text/csv" if format.lower() == "csv" else "application/json",
             headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
         )
     
+    except HTTPException as http_err:
+        logger.error(f"HTTP error during data cleaning/export: {http_err.detail}")
+        raise http_err
+
     except Exception as err:
-        raise HTTPException(status_code=500, detail=f"Data cleaning and export failed: {str(err)}")
+        logger.exception("Unexpected error during data cleaning and export.")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Data cleaning and export failed due to an internal error: {str(err)}"
+        )

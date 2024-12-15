@@ -17,19 +17,20 @@ class KafkaRepository:
         if group_id:
             self.start_consumer(group_id)
 
-    def _create_producer(self):
+    def _create_producer(self) -> Producer:
         """Initialize and return a Kafka producer."""
         return Producer({'bootstrap.servers': self.broker})
 
-    def _create_admin_client(self):
+    def _create_admin_client(self) -> AdminClient:
         """Initialize and return a Kafka admin client."""
         return AdminClient({'bootstrap.servers': self.broker})
 
-    def produce(self, value: dict, key: str = None):
+    def produce(self, value: dict, key: str = None) -> None:
         """
         Produce a message to the Kafka topic.
-        :param key: Key for partitioning the message (optional).
-        :param value: Message value to send to Kafka (dictionary expected).
+
+        :param key: (Optional) Key for partitioning the message.
+        :param value: Dictionary containing the message payload to send to Kafka.
         """
         try:
             serialized_value = json.dumps(value)
@@ -43,7 +44,7 @@ class KafkaRepository:
         except Exception as err:
             logger.error(f"Failed to produce message to Kafka: {err}")
 
-    def _create_consumer(self, group_id: str):
+    def _create_consumer(self, group_id: str) -> Consumer:
         """
         Initialize and return a Kafka consumer.
         :param group_id: Consumer group ID for offset management.
@@ -54,7 +55,7 @@ class KafkaRepository:
             'auto.offset.reset': 'earliest'
         })
     
-    def start_topic(self):
+    def start_topic(self) -> None:
         """
         Ensure the Kafka topic is created before producing messages.
         Logs success or failure accordingly.
@@ -65,7 +66,7 @@ class KafkaRepository:
             logger.error(f"Failed to create topic '{self.topic}'.")
             
     
-    def _create_topic(self, topic_name=None, num_partitions=1, replication_factor=1):
+    def _create_topic(self, topic_name=None, num_partitions=1, replication_factor=1) -> bool:
         """
         Create a Kafka topic if it doesn't already exist.
         https://docs.confluent.io/platform/current/clients/confluent-kafka-python/html/_modules/confluent_kafka/admin.html#AdminClient.create_topics
@@ -86,18 +87,20 @@ class KafkaRepository:
             for topic, future in futures.items():
                 try:
                     future.result()
+                    logger.info(f"Topic '{topic_name}' created successfully.")
                     return True
                 except KafkaException as err:
-                    logger.warning(f"Topic '{topic}' already exists: {err}")
-                    return True # TODO not sure if that's the only error returned
+                    logger.warning(f"Topic '{topic_name}' already exists or had a recoverable error: {err}")
+                    return True
                 except Exception as err:
-                    logger.error(f"Unexpected error creating topic '{topic}': {err}")
+                    logger.error(f"Unexpected error while creating topic '{topic_name}': {err}")
+                    raise
             return False
         except Exception as err:
             logger.error(f"Admin client failed to create topic: {err}")
             return False
 
-    def start_consumer(self, group_id: str):
+    def start_consumer(self, group_id: str) -> None:
         """
         Start the Kafka consumer for the specified group ID.
         :param group_id: Consumer group ID for offset management.
@@ -107,10 +110,11 @@ class KafkaRepository:
             self.consumer.subscribe([self.topic])
             logger.info(f"Kafka consumer started for topic {self.topic} and group {group_id}")
 
-    def consume(self):
+    def consume(self) -> list:
         """
         Consume messages from the Kafka topic.
-        :return: A list of parsed messages.
+
+        :return: A list of parsed JSON messages.
         """
         parsed_messages = []
         if not self.consumer:
@@ -130,7 +134,7 @@ class KafkaRepository:
                     raw_message = msg.value().decode('utf-8')
                     try:
                         json_message = json.loads(raw_message)
-                        logger.info(f"Consumed and parsed message: {json_message}")
+                        logger.info(f"Message consumed: {json_message}, offset={msg.offset()}, partition={msg.partition()}")
                         parsed_messages.append(json_message)
                     except json.JSONDecodeError:
                         logger.error(f"Failed to parse message as JSON: {raw_message}")
@@ -138,7 +142,7 @@ class KafkaRepository:
             logger.error(f"Failed to consume messages: {err}")
         return parsed_messages
 
-    def close_consumer(self):
+    def close_consumer(self) -> None:
         """Close the Kafka consumer."""
         if self.consumer:
             self.consumer.close()

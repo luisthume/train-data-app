@@ -4,6 +4,9 @@ from datetime import date, datetime
 
 
 class TimeTableRow(BaseModel):
+    """
+    Represents a row in the train's timetable.
+    """
     stationShortCode: str
     stationUICCode: int
     countryCode: str
@@ -16,6 +19,9 @@ class TimeTableRow(BaseModel):
     causes: List[dict]
 
 class TrainData(BaseModel):
+    """
+    Represents train schedule data.
+    """
     trainNumber: int
     departureDate: date
     operatorUICCode: int

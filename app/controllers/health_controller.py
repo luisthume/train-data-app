@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 router = APIRouter(tags=["Health Check"])
 
-
 class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
 
